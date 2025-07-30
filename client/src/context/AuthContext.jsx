@@ -1,0 +1,636 @@
+// client/src/context/AuthContext.jsx - FIXED with separate password reset functions
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
+import { authService } from '../services/auth';
+
+// Initial state
+const initialState = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  isLoading: true,
+  error: null,
+};
+
+// Action types 
+const AUTH_ACTION_TYPES = {
+  LOGIN_START: 'LOGIN_START',
+  LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+  LOGIN_FAILURE: 'LOGIN_FAILURE',
+  REGISTER_START: 'REGISTER_START',
+  REGISTER_SUCCESS: 'REGISTER_SUCCESS',
+  REGISTER_FAILURE: 'REGISTER_FAILURE',
+  LOGOUT: 'LOGOUT',
+  LOAD_USER_START: 'LOAD_USER_START',
+  LOAD_USER_SUCCESS: 'LOAD_USER_SUCCESS',
+  LOAD_USER_FAILURE: 'LOAD_USER_FAILURE',
+  UPDATE_PROFILE_START: 'UPDATE_PROFILE_START',
+  UPDATE_PROFILE_SUCCESS: 'UPDATE_PROFILE_SUCCESS',
+  UPDATE_PROFILE_FAILURE: 'UPDATE_PROFILE_FAILURE',
+  CLEAR_ERROR: 'CLEAR_ERROR',
+  SET_LOADING: 'SET_LOADING',
+};
+
+// Reducer function
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case AUTH_ACTION_TYPES.LOGIN_START:
+    case AUTH_ACTION_TYPES.REGISTER_START:
+    case AUTH_ACTION_TYPES.LOAD_USER_START:
+    case AUTH_ACTION_TYPES.UPDATE_PROFILE_START:
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.LOGIN_SUCCESS:
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.REGISTER_SUCCESS:
+      return {
+        ...state,
+        isLoading: false,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.LOAD_USER_SUCCESS:
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token || state.token,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.UPDATE_PROFILE_SUCCESS:
+      return {
+        ...state,
+        user: action.payload.user,
+        isLoading: false,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.LOGIN_FAILURE:
+    case AUTH_ACTION_TYPES.REGISTER_FAILURE:
+    case AUTH_ACTION_TYPES.LOAD_USER_FAILURE:
+    case AUTH_ACTION_TYPES.UPDATE_PROFILE_FAILURE:
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: action.payload.error,
+      };
+
+    case AUTH_ACTION_TYPES.LOGOUT:
+      return {
+        ...initialState,
+        isLoading: false,
+      };
+
+    case AUTH_ACTION_TYPES.CLEAR_ERROR:
+      return {
+        ...state,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.SET_LOADING:
+      return {
+        ...state,
+        isLoading: action.payload.isLoading,
+      };
+
+    default:
+      return state;
+  }
+};
+
+// Create context
+const AuthContext = createContext();
+
+// AuthProvider component
+export const AuthProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+  
+  const hasInitialized = useRef(false);
+  const isLoadingUser = useRef(false);
+  const loadUserTimeoutRef = useRef(null);
+
+  const loadUser = useCallback(async () => {
+    if (isLoadingUser.current) {
+      console.log('loadUser already in progress, skipping');
+      return;
+    }
+
+    try {
+      isLoadingUser.current = true;
+      dispatch({ type: AUTH_ACTION_TYPES.LOAD_USER_START });
+
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.log('No token found, user not authenticated');
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOAD_USER_FAILURE,
+          payload: { error: 'No token found' },
+        });
+        return;
+      }
+
+      console.log('Loading user profile...');
+      const response = await authService.getProfile();
+      
+      if (response.success && response.user) {
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOAD_USER_SUCCESS,
+          payload: { 
+            user: response.user,
+            token: token
+          },
+        });
+        console.log('User loaded successfully');
+      } else {
+        throw new Error('Invalid profile response');
+      }
+    } catch (error) {
+      console.error('Load user error:', error);
+      
+      if (error.response?.status === 429) {
+        console.log('Rate limited - will retry later');
+        
+        if (loadUserTimeoutRef.current) {
+          clearTimeout(loadUserTimeoutRef.current);
+        }
+        
+        loadUserTimeoutRef.current = setTimeout(() => {
+          if (localStorage.getItem('token')) {
+            console.log('Retrying user load after rate limit...');
+            loadUser();
+          }
+        }, 60000);
+        
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOAD_USER_FAILURE,
+          payload: { error: 'Rate limited - please wait' },
+        });
+        return;
+      }
+      
+      if (error.response?.status === 401) {
+        console.log('Token invalid, clearing auth data');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      
+      dispatch({
+        type: AUTH_ACTION_TYPES.LOAD_USER_FAILURE,
+        payload: { 
+          error: error.response?.data?.message || 'Failed to load user' 
+        },
+      });
+    } finally {
+      isLoadingUser.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      console.log('AuthProvider initializing...');
+      
+      const token = localStorage.getItem('token');
+      if (token) {
+        loadUser();
+      } else {
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOAD_USER_FAILURE,
+          payload: { error: 'No token found' },
+        });
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (loadUserTimeoutRef.current) {
+        clearTimeout(loadUserTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Login function
+  const login = async (credentials) => {
+    try {
+      dispatch({ type: AUTH_ACTION_TYPES.LOGIN_START });
+
+      console.log('Attempting login...');
+      const response = await authService.login(credentials);
+      
+      if (response.success && response.user && response.token) {
+        console.log('Login successful');
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOGIN_SUCCESS,
+          payload: {
+            user: response.user,
+            token: response.token,
+          },
+        });
+
+        return { success: true, user: response.user, token: response.token };
+      } else {
+        throw new Error(response.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.message ||
+                          'Login failed';
+      
+      dispatch({
+        type: AUTH_ACTION_TYPES.LOGIN_FAILURE,
+        payload: { error: errorMessage },
+      });
+      
+      return { success: false, message: errorMessage };
+    }
+  };
+
+  // Register function
+  const register = async (userData) => {
+    try {
+      dispatch({ type: AUTH_ACTION_TYPES.REGISTER_START });
+
+      const response = await authService.register(userData);
+
+      if (response.success) {
+        dispatch({ type: AUTH_ACTION_TYPES.REGISTER_SUCCESS });
+        return response;
+      } else {
+        throw new Error(response.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.message ||
+                          'Registration failed';
+      
+      dispatch({
+        type: AUTH_ACTION_TYPES.REGISTER_FAILURE,
+        payload: { error: errorMessage },
+      });
+      
+      throw error;
+    }
+  };
+
+  // Logout function
+  const logout = async () => {
+    try {
+      console.log('Logging out...');
+      
+      hasInitialized.current = false;
+      isLoadingUser.current = false;
+      
+      if (loadUserTimeoutRef.current) {
+        clearTimeout(loadUserTimeoutRef.current);
+        loadUserTimeoutRef.current = null;
+      }
+      
+      dispatch({ type: AUTH_ACTION_TYPES.LOGOUT });
+      
+      authService.logout().catch(error => {
+        console.error('Server logout error (ignored):', error);
+      });
+      
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Update profile function
+  const updateProfile = async (profileData) => {
+    try {
+      dispatch({ type: AUTH_ACTION_TYPES.UPDATE_PROFILE_START });
+
+      const response = await authService.updateProfile(profileData);
+      
+      if (response.success && response.user) {
+        dispatch({
+          type: AUTH_ACTION_TYPES.UPDATE_PROFILE_SUCCESS,
+          payload: { user: response.user },
+        });
+
+        return response;
+      } else {
+        throw new Error(response.message || 'Profile update failed');
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.message ||
+                          'Profile update failed';
+      
+      dispatch({
+        type: AUTH_ACTION_TYPES.UPDATE_PROFILE_FAILURE,
+        payload: { error: errorMessage },
+      });
+      
+      throw error;
+    }
+  };
+
+  // Change password function
+  const changePassword = async (passwordData) => {
+    try {
+      const response = await authService.changePassword(passwordData);
+      return response;
+    } catch (error) {
+      console.error('Change password error:', error);
+      throw error;
+    }
+  };
+
+  // ===========================================
+  // REGISTRATION EMAIL VERIFICATION FUNCTIONS
+  // ===========================================
+  const sendOTP = async (email, type = 'verification') => {
+    try {
+      const response = await authService.sendOTP(email, type);
+      return response;
+    } catch (error) {
+      console.error('Send OTP error:', error);
+      throw error;
+    }
+  };
+
+  const verifyOTP = async (email, otp, type = 'verification') => {
+    try {
+      const response = await authService.verifyOTP(email, otp, type);
+      
+      if (response.success && response.user && response.token) {
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOGIN_SUCCESS,
+          payload: {
+            user: response.user,
+            token: response.token,
+          },
+        });
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      throw error;
+    }
+  };
+
+  const resendOTP = async (email, type = 'verification') => {
+    try {
+      const response = await authService.resendOTP(email, type);
+      return response;
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      throw error;
+    }
+  };
+
+  // ===========================================
+  // FORGOT PASSWORD FUNCTIONS (SEPARATE)
+  // ===========================================
+  const forgotPassword = async (email) => {
+    try {
+      const response = await authService.forgotPassword(email);
+      return response;
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      throw error;
+    }
+  };
+
+  const verifyForgotPasswordOTP = async (email, otp) => {
+    try {
+      const response = await authService.verifyForgotPasswordOTP(email, otp);
+      return response;
+    } catch (error) {
+      console.error('Verify forgot password OTP error:', error);
+      throw error;
+    }
+  };
+
+  const resetPasswordWithOTP = async (email, otp, newPassword) => {
+    try {
+      const response = await authService.resetPasswordWithOTP(email, otp, newPassword);
+      return response;
+    } catch (error) {
+      console.error('Reset password with OTP error:', error);
+      throw error;
+    }
+  };
+
+  const resendForgotPasswordOTP = async (email) => {
+    try {
+      const response = await authService.resendForgotPasswordOTP(email);
+      return response;
+    } catch (error) {
+      console.error('Resend forgot password OTP error:', error);
+      throw error;
+    }
+  };
+
+  // ===========================================
+  // LEGACY FUNCTIONS (Keep for compatibility)
+  // ===========================================
+  const resetPassword = async (resetData) => {
+    try {
+      const response = await authService.resetPassword(resetData);
+      
+      if (response.success && response.user && response.token) {
+        dispatch({
+          type: AUTH_ACTION_TYPES.LOGIN_SUCCESS,
+          payload: {
+            user: response.user,
+            token: response.token,
+          },
+        });
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  };
+
+  const verifyEmail = async (token) => {
+    try {
+      const response = await authService.verifyEmail(token);
+      return response;
+    } catch (error) {
+      console.error('Email verification error:', error);
+      throw error;
+    }
+  };
+
+  const resendVerificationEmail = async (email) => {
+    try {
+      const response = await authService.resendVerificationEmail(email || state.user?.email);
+      return response;
+    } catch (error) {
+      console.error('Resend verification email error:', error);
+      throw error;
+    }
+  };
+
+  const clearError = () => {
+    dispatch({ type: AUTH_ACTION_TYPES.CLEAR_ERROR });
+  };
+
+  // Utility functions
+  const hasRole = (role) => {
+    return state.user?.category === role;
+  };
+
+  const hasPermission = (permission) => {
+    return state.user?.permissions?.includes(permission);
+  };
+
+  const isVerified = () => {
+    return state.user?.isEmailVerified === true;
+  };
+
+  const getUserCategory = () => {
+    return state.user?.category;
+  };
+
+  const getUserDepartment = () => {
+    return state.user?.department;
+  };
+
+  const getUserFullName = () => {
+    if (!state.user) return '';
+    if (state.user.firstName && state.user.lastName) {
+      return `${state.user.firstName} ${state.user.lastName}`;
+    }
+    return state.user.username || state.user.email || '';
+  };
+
+  const getUserInitials = () => {
+    if (!state.user) return '';
+    
+    if (state.user.firstName && state.user.lastName) {
+      return `${state.user.firstName.charAt(0)}${state.user.lastName.charAt(0)}`.toUpperCase();
+    }
+    
+    if (state.user.username) {
+      return state.user.username.charAt(0).toUpperCase();
+    }
+    
+    if (state.user.email) {
+      return state.user.email.charAt(0).toUpperCase();
+    }
+    
+    return 'U';
+  };
+
+  const contextValue = React.useMemo(() => ({
+    // State
+    user: state.user,
+    token: state.token,
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading,
+    error: state.error,
+
+    // Actions
+    login,
+    register,
+    logout,
+    loadUser,
+    updateProfile,
+    changePassword,
+    clearError,
+
+    // Registration email verification
+    sendOTP,
+    verifyOTP,
+    resendOTP,
+
+    // Forgot password functions (separate)
+    forgotPassword,
+    verifyForgotPasswordOTP,
+    resetPasswordWithOTP,
+    resendForgotPasswordOTP,
+
+    // Legacy functions
+    resetPassword,
+    verifyEmail,
+    resendVerificationEmail,
+
+    // Utility functions
+    hasRole,
+    hasPermission,
+    isVerified,
+    getUserCategory,
+    getUserDepartment,
+    getUserFullName,
+    getUserInitials,
+  }), [
+    state.user,
+    state.token,
+    state.isAuthenticated,
+    state.isLoading,
+    state.error,
+    loadUser
+  ]);
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// Custom hook to use auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  
+  return context;
+};
+
+// HOC for protected routes
+export const withAuth = (WrappedComponent) => {
+  return function AuthenticatedComponent(props) {
+    const { isAuthenticated, isLoading } = useAuth();
+    
+    if (isLoading) {
+      return <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>;
+    }
+    
+    if (!isAuthenticated) {
+      return <div className="text-center py-8">
+        <p className="text-gray-600">Please log in to access this page.</p>
+      </div>;
+    }
+    
+    return <WrappedComponent {...props} />;
+  };
+};
+
+export default AuthContext;
