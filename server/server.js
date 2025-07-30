@@ -36,7 +36,9 @@
       
       const allowedOrigins = [
         process.env.FRONTEND_URL,
-        process.env.ADMIN_URL
+        process.env.ADMIN_URL,
+        "https://e-printer-admin.vercel.app",
+        "https://e-printer-client.vercel.app",
       ].filter(Boolean); // Remove undefined values
       
       if (allowedOrigins.indexOf(origin) !== -1) {
