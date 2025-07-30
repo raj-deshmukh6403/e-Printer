@@ -235,6 +235,13 @@
     next();
   }, settingsRoutes);
 
+  app.get('/raj', (req, res) => {
+    res.json({
+      message: 'Hello from /raj route!'
+    });
+    console.log('Request headers:', req.headers);
+  });
+
   // Update your API documentation route to include settings endpoints
   app.get('/api', (req, res) => {
     res.json({
