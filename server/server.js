@@ -35,8 +35,6 @@
       if (!origin) return callback(null, true);
       
       const allowedOrigins = [
-        'http://localhost:3000', // Client
-        'http://localhost:3001', // Admin
         process.env.FRONTEND_URL,
         process.env.ADMIN_URL
       ].filter(Boolean); // Remove undefined values
