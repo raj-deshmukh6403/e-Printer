@@ -80,6 +80,7 @@ const PaymentPage = () => {
       const config = {
         withCredentials: true,
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       };
@@ -125,6 +126,7 @@ const PaymentPage = () => {
       const config = {
         withCredentials: true,
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       };
@@ -199,6 +201,7 @@ const PaymentPage = () => {
       const config = {
         withCredentials: true,
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       };
