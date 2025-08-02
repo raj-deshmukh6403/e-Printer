@@ -5,6 +5,15 @@ const { auth } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 const { validateRegistration, validateLogin } = require('../middleware/validation');
 
+// Test route to check if auth routes are accessible
+router.get('/test', (req, res) => {
+  res.json({
+    message: 'Auth routes are working!',
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin
+  });
+});
+
 // Register user
 router.post('/register', validateRegistration, authController.register);
 
