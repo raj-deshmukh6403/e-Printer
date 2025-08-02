@@ -52,7 +52,7 @@ const Dashboard = () => {
       // Try print requests with different endpoints
       try {
         console.log('Trying /api/print/requests...');
-        const requestsRes = await axios.get('http://localhost:5000/api/print/requests', config);
+        const requestsRes = await axios.get('https://e-printer-rouge.vercel.app/api/print/requests', config);
         console.log('Success with /api/print/requests:', requestsRes.data);
         requestsData = requestsRes.data.data || requestsRes.data.printRequests || requestsRes.data || [];
       } catch (error) {
@@ -60,7 +60,7 @@ const Dashboard = () => {
         
         try {
           console.log('Trying /api/print/request...');
-          const requestsRes = await axios.get('http://localhost:5000/api/print/request', config);
+          const requestsRes = await axios.get('https://e-printer-rouge.vercel.app/api/print/request', config);
           console.log('Success with /api/print/request:', requestsRes.data);
           requestsData = requestsRes.data.data || requestsRes.data.printRequests || requestsRes.data || [];
         } catch (error2) {
@@ -72,7 +72,7 @@ const Dashboard = () => {
       // Try notifications
       try {
         console.log('Trying /api/notifications...');
-        const notificationsRes = await axios.get('http://localhost:5000/api/notifications/getall', config);
+        const notificationsRes = await axios.get('https://e-printer-rouge.vercel.app/api/notifications/getall', config);
         console.log('Success with /api/notifications:', notificationsRes.data);
         notificationsData = notificationsRes.data.data || notificationsRes.data || [];
       } catch (error) {

@@ -91,7 +91,7 @@ const PaymentPage = () => {
       console.log('Making request with config:', config);
       
       const response = await axios.get(
-        `http://localhost:5000/api/print/request/${id}`, 
+        `https://e-printer-rouge.vercel.app/api/print/request/${id}`, 
         config
       );
       
@@ -135,7 +135,7 @@ const PaymentPage = () => {
 
       console.log('Creating Razorpay order...');
       const orderResponse = await axios.post(
-        'http://localhost:5000/api/payment/create-order',
+        'https://e-printer-rouge.vercel.app/api/payment/create-order',
         { printRequestId: id },
         config
       );
@@ -220,7 +220,7 @@ const PaymentPage = () => {
       };
 
       const response = await axios.post(
-        'http://localhost:5000/api/payment/verify',
+        'https://e-printer-rouge.vercel.app/api/payment/verify',
         verificationData,
         config
       );

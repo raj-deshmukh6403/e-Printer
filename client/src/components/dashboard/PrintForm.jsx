@@ -136,7 +136,7 @@ const PrintForm = () => {
     
     // Check if it's a PDF file
     if (uploadedFile.type === 'application/pdf') {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const baseUrl = process.env.REACT_APP_API_URL || 'https://e-printer-rouge.vercel.app/api';
       
       // FIXED: Use the actual server file name from upload response
       const serverFileName = actualServerFileName || 
