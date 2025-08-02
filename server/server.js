@@ -89,12 +89,27 @@ app.use('/api', (req, res, next) => {
   console.log('=== TOKEN DEBUG ===');
   console.log('Path:', req.path);
   console.log('Method:', req.method);
-  console.log('Authorization header:', req.headers.authorization);
-  console.log('Cookies:', req.cookies);
-  console.log('Body (first 200 chars):', JSON.stringify(req.body).substring(0, 200));
+  console.log('Authorization header:', req.headers.authorization || 'None');
+  console.log('Cookies:', req.cookies || {});
+  
+  // Safe body logging - handle all edge cases
+  try {
+    let bodyStr = '';
+    if (req.body && typeof req.body === 'object') {
+      bodyStr = JSON.stringify(req.body);
+    } else if (req.body) {
+      bodyStr = String(req.body);
+    }
+    console.log('Body (first 200 chars):', bodyStr.substring(0, 200) || 'Empty body');
+  } catch (error) {
+    console.log('Body: Unable to stringify body -', error.message);
+  }
+  
   console.log('===================');
   next();
 });
+
+// Alternat
 
 // Body parsing middleware - MUST come before routes
 app.use(express.json({ limit: '10mb' }));
