@@ -114,15 +114,30 @@ const getSettingByKey = async (req, res) => {
   }
 };
 
-// Check service availability (maintenance mode, business hours, etc.)
+// FIXED: Check service availability with proper time comparison
 const getServiceStatus = async (req, res) => {
   try {
     const settings = await Settings.getSettings();
-    const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
     
-    // Check if current time is within business hours
-    const isWithinBusinessHours = currentTime >= settings.businessHours.start && currentTime <= settings.businessHours.end;
+    // Get current time in IST (Indian timezone)
+    const now = new Date();
+    const istTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+    const currentHour = istTime.getHours();
+    const currentMinute = istTime.getMinutes();
+    const currentTime = istTime.toTimeString().slice(0, 5); // HH:MM format for display
+    
+    // Convert time to decimal for proper comparison
+    const timeToDecimal = (timeStr) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours + (minutes / 60);
+    };
+    
+    const currentTimeDecimal = currentHour + (currentMinute / 60);
+    const startTimeDecimal = timeToDecimal(settings.businessHours.start);
+    const endTimeDecimal = timeToDecimal(settings.businessHours.end);
+    
+    // ✅ FIXED: Proper time comparison using decimal values
+    const isWithinBusinessHours = currentTimeDecimal >= startTimeDecimal && currentTimeDecimal <= endTimeDecimal;
     
     // Check if service is available
     const isServiceAvailable = !settings.systemSettings.maintenanceMode && 
@@ -137,9 +152,20 @@ const getServiceStatus = async (req, res) => {
         start: settings.businessHours.start,
         end: settings.businessHours.end,
         isWithinHours: isWithinBusinessHours,
-        currentTime: currentTime
+        currentTime: currentTime,
+        timezone: 'Asia/Kolkata'
       },
-      reasons: []
+      reasons: [],
+      // Debug info (remove in production)
+      debug: {
+        currentTimeDecimal: currentTimeDecimal.toFixed(2),
+        startTimeDecimal: startTimeDecimal.toFixed(2),
+        endTimeDecimal: endTimeDecimal.toFixed(2),
+        currentHour,
+        currentMinute,
+        istTime: istTime.toISOString(),
+        utcTime: now.toISOString()
+      }
     };
 
     // Add reasons why service might not be available
@@ -152,6 +178,17 @@ const getServiceStatus = async (req, res) => {
     if (!isWithinBusinessHours) {
       serviceStatus.reasons.push(`Service available only during business hours (${settings.businessHours.start} - ${settings.businessHours.end})`);
     }
+
+    console.log('Service Status Debug:', {
+      currentTime,
+      currentTimeDecimal: currentTimeDecimal.toFixed(2),
+      businessStart: settings.businessHours.start,
+      businessEnd: settings.businessHours.end,
+      startTimeDecimal: startTimeDecimal.toFixed(2),
+      endTimeDecimal: endTimeDecimal.toFixed(2),
+      isWithinHours: isWithinBusinessHours,
+      available: isServiceAvailable
+    });
 
     res.json({
       success: true,
