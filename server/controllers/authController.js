@@ -579,7 +579,7 @@ exports.verifyForgotPasswordOTP = async (req, res) => {
       });
     }
 
-    if (!user.verifyOTP(otp, 'password-reset')) {
+    if (!user.verifyOTP(otp, 'verification')) {
       user.otpAttempts += 1;
       await user.save({ validateBeforeSave: false });
 
