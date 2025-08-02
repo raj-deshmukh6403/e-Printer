@@ -43,12 +43,15 @@ export const authService = {
     try {
       console.log('AuthService: Getting user profile...');
       const response = await api.get('/auth/profile');
-      console.log("Rajvardhan",response.data.user);
+      
+      console.log("Rajvardhan",response.data);
+      console.log("User",response.data.data);
       
       
-     if (response.data.success && response.data.user) {
+      
+     if (response.data.success && response.data.data) {
         // Update stored user data
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('user', JSON.stringify(response.data.data));
 
         console.log('AuthService: Profile retrieved successfully');
         return {
