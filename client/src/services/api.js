@@ -6,6 +6,7 @@ const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'https://e-printer-rouge.vercel.app/api',
   withCredentials: true, // Important for cookie-based auth
   headers: {
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 second timeout
