@@ -6,11 +6,15 @@ const authController = require('../controllers/authController');
 const { validateRegistration, validateLogin } = require('../middleware/validation');
 
 // Test route to check if auth routes are accessible
+// Test route (no auth required)
 router.get('/test', (req, res) => {
+  console.log('Auth test route hit');
   res.json({
+    success: true,
     message: 'Auth routes are working!',
     timestamp: new Date().toISOString(),
-    origin: req.headers.origin
+    environment: process.env.NODE_ENV,
+    jwtSecretExists: !!process.env.JWT_SECRET
   });
 });
 

@@ -5,6 +5,8 @@ export const authService = {
   // User login
   login: async (credentials) => {
     try {
+      console.log('AuthService: Attempting login for:', credentials.email);
+
       const response = await api.post('/auth/login', credentials);
       
       if (response.data.success && response.data.token) {
@@ -14,6 +16,11 @@ export const authService = {
       
       return response.data;
     } catch (error) {
+      
+       console.error('AuthService: Login error:', error);
+      // Clear any existing auth data on login failure
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       throw error;
     }
   },
@@ -21,9 +28,12 @@ export const authService = {
   // User registration
   register: async (userData) => {
     try {
+      console.log('AuthService: Attempting registration for:', userData.email);
       const response = await api.post('/auth/register', userData);
+      console.log('AuthService: Registration response:', response.data);
       return response.data;
     } catch (error) {
+      console.error('AuthService: Registration error:', error);
       throw error;
     }
   },
@@ -31,14 +41,28 @@ export const authService = {
   // Get user profile
   getProfile: async () => {
     try {
+      console.log('AuthService: Getting user profile...');
       const response = await api.get('/auth/profile');
       
-      return {
+     if (response.data.success && response.data.user) {
+        // Update stored user data
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        console.log('AuthService: Profile retrieved successfully');
+        return {
         success: response.data.success,
         user: response.data.data,
         data: response.data.data
       };
+      } else {
+        throw new Error(response.data.message || 'Failed to get profile');
+      }
     } catch (error) {
+      console.error('AuthService: Profile error:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
       throw error;
     }
   },
@@ -46,16 +70,24 @@ export const authService = {
   // Logout user
   logout: async () => {
     try {
-      const response = await api.post('/auth/logout');
+      console.log('AuthService: Logging out...');
+      // Try to call server logout endpoint
+      try {
+        const response = await api.post('/auth/logout');
+        return response.data;
+      } catch (error) {
+        // Ignore server logout errors
+        console.warn('AuthService: Server logout failed (ignored):', error.message);
+      }
       
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      return response.data;
+      console.log('AuthService: Logout completed');
     } catch (error) {
+      console.error('AuthService: Logout error:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      console.error('Logout error:', error);
       throw error;
     }
   },
@@ -63,18 +95,24 @@ export const authService = {
   // Update profile
   updateProfile: async (profileData) => {
     try {
+      console.log('AuthService: Updating profile...');
       const response = await api.put('/auth/profile', profileData);
       
-      if (response.data.success && response.data.data) {
-        localStorage.setItem('user', JSON.stringify(response.data.data));
-      }
-      
-      return {
+      if (response.data.success && response.data.user) {
+        // Update stored user data
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        console.log('AuthService: Profile updated successfully');
+        return {
         success: response.data.success,
         user: response.data.data,
         data: response.data.data
       };
+      } else {
+        throw new Error(response.data.message || 'Profile update failed');
+      }
     } catch (error) {
+      console.error('AuthService: Profile update error:', error);
       throw error;
     }
   },
@@ -82,6 +120,7 @@ export const authService = {
   // Change password (for authenticated users)
   changePassword: async (passwordData) => {
     try {
+      console.log('AuthService: Changing password...');
       const response = await api.put('/auth/change-password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword

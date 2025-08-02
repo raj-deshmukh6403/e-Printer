@@ -163,7 +163,7 @@ router.get('/preview/:filename', auth, async (req, res) => {
         success: false, 
         message: 'File not found',
         details: `The requested PDF file "${filename}" could not be located on the server`,
-        availableFiles: process.env.NODE_ENV === 'development' 
+        availableFiles: process.env.NODE_ENV === 'production' 
           ? (fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir) : [])
           : undefined
       });
@@ -243,7 +243,7 @@ router.get('/preview/:filename', auth, async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : 'An error occurred while processing your request'
+      details: process.env.NODE_ENV === 'production' ? error.message : 'An error occurred while processing your request'
     });
   }
 });
@@ -427,7 +427,7 @@ router.get('/health', (req, res) => {
 });
 
 // Enhanced debug endpoint (development only)
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'production') {
   router.get('/debug/list', auth, (req, res) => {
     try {
       const uploadsDir = path.join(__dirname, '../uploads');

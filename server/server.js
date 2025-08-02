@@ -37,7 +37,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
-      process.env.FRONTEND_URL,
+      process.env.CLIENT_URL,
       process.env.ADMIN_URL,
       "https://e-printer-admin.vercel.app",
       "https://e-printer-client.vercel.app",
@@ -85,6 +85,17 @@ app.options('*', cors(corsOptions));
 // Cookie parser (before routes)
 app.use(cookieParser());
 
+app.use('/api', (req, res, next) => {
+  console.log('=== TOKEN DEBUG ===');
+  console.log('Path:', req.path);
+  console.log('Method:', req.method);
+  console.log('Authorization header:', req.headers.authorization);
+  console.log('Cookies:', req.cookies);
+  console.log('Body (first 200 chars):', JSON.stringify(req.body).substring(0, 200));
+  console.log('===================');
+  next();
+});
+
 // Body parsing middleware - MUST come before routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -122,7 +133,7 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req) => {
     // Skip rate limiting for profile checks in development
-    return process.env.NODE_ENV === 'development' && req.path === '/profile';
+    return process.env.NODE_ENV === 'production' && req.path === '/profile';
   }
 });
 
@@ -169,7 +180,7 @@ app.use('/api', (req, res, next) => {
 });
 
 // Logging middleware
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
@@ -345,7 +356,7 @@ app.use((error, req, res, next) => {
   // Default error
   res.status(error.status || 500).json({
     message: error.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+    ...(process.env.NODE_ENV === 'production' && { stack: error.stack })
   });
 });
 
@@ -383,13 +394,12 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-//test
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
   console.log(`🖨️  Print queue initialized with ${printQueue.getQueueStatus().maxConcurrent} max concurrent jobs`);
   console.log(`🔗 API available at: http://localhost:${PORT}/api`);
   console.log(`❤️  Health check: http://localhost:${PORT}/health`);
