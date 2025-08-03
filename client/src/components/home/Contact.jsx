@@ -54,11 +54,11 @@ const Contact = () => {
           const settings = settingsResponse.data;
           setContactSettings(prev => ({
             ...prev,
-            supportEmail: settings.supportEmail || prev.supportEmail,
-            supportPhone: settings.supportPhone || prev.supportPhone,
-            emergencyEmail: settings.emergencyEmail || prev.emergencyEmail,
-            emergencyPhone: settings.emergencyPhone || prev.emergencyPhone,
-            location: settings.location || prev.location,
+            supportEmail: settings.contactInfo.email || prev.supportEmail,
+            supportPhone: settings.contactInfo.phone|| prev.Phone,
+            emergencyEmail: settings.contactInfo.emergencyEmail || prev.emergencyEmail,
+            emergencyPhone: settings.contactInfo.emergencyPhone || prev.emergencyPhone,
+            location: settings.contactInfo.address.split('\n') || prev.location,
             businessHours: {
               start: settings.businessHours?.start || prev.businessHours.start,
               end: settings.businessHours?.end || prev.businessHours.end
