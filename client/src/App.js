@@ -17,7 +17,6 @@ import About from './components/home/About';
 import Contact from './components/home/Contact';
 import VerifyOTP from './components/auth/VerifyOTP';
 import WebTeam from './pages/WebTeam';
-import './styles/tailwind.css';
 import './styles/globals.css';
 
 // Protected Route Component
