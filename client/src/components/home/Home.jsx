@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { printService } from '../../services/print';
 import { Printer, Shield, Smartphone, Upload, Settings, CreditCard, Download, Star, Users, Clock, CheckCircle } from 'lucide-react';
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState({});
+  
+  // Dynamic data states
+  const [pricing, setPricing] = useState({
+    blackAndWhite: 1.0,
+    color: 5.0
+  });
+  const [businessHours, setBusinessHours] = useState({
+    start: '09:00',
+    end: '18:00'
+  });
+  const [serviceStatus, setServiceStatus] = useState({
+    available: true,
+    acceptingOrders: true
+  });
+  const [loading, setLoading] = useState(true);
 
   // Auto-slide for hero background
   useEffect(() => {
@@ -14,6 +30,54 @@ const Home = () => {
       setCurrentSlide((prev) => (prev + 1) % 3);
     }, 5000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch dynamic data
+  useEffect(() => {
+    const fetchDynamicData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all dynamic data concurrently
+        const [settingsResponse, pricingResponse, statusResponse] = await Promise.all([
+          printService.getSettings(),
+          printService.getPricingInfo(),
+          printService.getServiceStatus()
+        ]);
+
+        // Update pricing
+        if (pricingResponse.success && pricingResponse.data) {
+          setPricing({
+            blackAndWhite: pricingResponse.data.basic?.blackAndWhite || 1.0,
+            color: pricingResponse.data.basic?.color || 5.0
+          });
+        }
+
+        // Update business hours
+        if (settingsResponse.success && settingsResponse.data?.businessHours) {
+          setBusinessHours({
+            start: settingsResponse.data.businessHours.start || '09:00',
+            end: settingsResponse.data.businessHours.end || '18:00'
+          });
+        }
+
+        // Update service status
+        if (statusResponse.success && statusResponse.data) {
+          setServiceStatus({
+            available: statusResponse.data.available || true,
+            acceptingOrders: statusResponse.data.acceptingOrders || true
+          });
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch dynamic data:', error);
+        // Keep default values on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDynamicData();
   }, []);
 
   // Intersection Observer for animations
@@ -34,6 +98,19 @@ const Home = () => {
 
     return () => observer.disconnect();
   }, []);
+
+  // Format business hours for display
+  const formatBusinessHours = () => {
+    const formatTime = (time) => {
+      const [hours, minutes] = time.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${displayHour}:${minutes} ${ampm}`;
+    };
+
+    return `${formatTime(businessHours.start)} - ${formatTime(businessHours.end)}`;
+  };
 
   const features = [
     {
@@ -110,12 +187,21 @@ const Home = () => {
   const stats = [
     { icon: <Users className="w-8 h-8" />, number: "50,000+", label: "Happy Students" },
     { icon: <Printer className="w-8 h-8" />, number: "1M+", label: "Documents Printed" },
-    { icon: <Clock className="w-8 h-8" />, number: "24/7", label: "Service Available" },
+    { icon: <Clock className="w-8 h-8" />, number: serviceStatus.available ? "24/7" : formatBusinessHours(), label: "Service Available" },
     { icon: <CheckCircle className="w-8 h-8" />, number: "99.9%", label: "Uptime" }
   ];
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Status Banner */}
+      {!serviceStatus.available && (
+        <div className="bg-red-600 text-white text-center py-2 px-4">
+          <p className="text-sm">
+            Service temporarily unavailable. Business hours: {formatBusinessHours()}
+          </p>
+        </div>
+      )}
+
       {/* Hero Section with Animated Background */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Animated Background */}
@@ -162,9 +248,14 @@ const Home = () => {
                   <>
                     <Link
                       to="/register"
-                      className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-full text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                      className={`group px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                        serviceStatus.acceptingOrders
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                          : 'bg-gray-400 text-white cursor-not-allowed'
+                      }`}
+                      {...(!serviceStatus.acceptingOrders && { onClick: (e) => e.preventDefault() })}
                     >
-                      Start Printing Now
+                      {serviceStatus.acceptingOrders ? 'Start Printing Now' : 'Service Unavailable'}
                       <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
                     </Link>
                     <Link
@@ -353,6 +444,9 @@ const Home = () => {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               No hidden fees, no surprises. Just honest, affordable rates for quality printing
             </p>
+            {loading && (
+              <p className="text-sm text-gray-500 mt-2">Loading current pricing...</p>
+            )}
           </div>
 
           <div className="max-w-4xl mx-auto">
@@ -363,7 +457,9 @@ const Home = () => {
                   <Printer className="w-10 h-10" />
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">Black & White</h3>
-                <div className="text-5xl font-bold text-gray-900 mb-2">₹1</div>
+                <div className="text-5xl font-bold text-gray-900 mb-2">
+                  ₹{loading ? '...' : pricing.blackAndWhite.toFixed(0)}
+                </div>
                 <p className="text-gray-600 mb-6">per page</p>
                 <div className="text-sm text-gray-500">
                   <p>• High-quality paper</p>
@@ -381,7 +477,9 @@ const Home = () => {
                   <Printer className="w-10 h-10" />
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">Color Print</h3>
-                <div className="text-5xl font-bold text-gray-900 mb-2">₹5</div>
+                <div className="text-5xl font-bold text-gray-900 mb-2">
+                  ₹{loading ? '...' : pricing.color.toFixed(0)}
+                </div>
                 <p className="text-gray-600 mb-6">per page</p>
                 <div className="text-sm text-gray-500">
                   <p>• Vibrant colors</p>
@@ -414,9 +512,14 @@ const Home = () => {
           {!isAuthenticated && (
             <Link
               to="/register"
-              className="group bg-white text-blue-600 px-10 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl inline-block"
+              className={`group px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl inline-block ${
+                serviceStatus.acceptingOrders
+                  ? 'bg-white text-blue-600 hover:bg-gray-100'
+                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              }`}
+              {...(!serviceStatus.acceptingOrders && { onClick: (e) => e.preventDefault() })}
             >
-              Create Your Account Now
+              {serviceStatus.acceptingOrders ? 'Create Your Account Now' : 'Service Currently Unavailable'}
               <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           )}

@@ -16,6 +16,8 @@ import Profile from './components/dashboard/Profile';
 import About from './components/home/About';
 import Contact from './components/home/Contact';
 import VerifyOTP from './components/auth/VerifyOTP';
+import WebTeam from './pages/WebTeam';
+import './styles/tailwind.css';
 import './styles/globals.css';
 
 // Protected Route Component
@@ -127,6 +129,14 @@ function App() {
             element={
               <PublicRoute>
                 <ForgotPassword />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/web-team" 
+            element={
+              <PublicRoute>
+                <WebTeam />
               </PublicRoute>
             } 
           />
