@@ -14,7 +14,7 @@ export const creatorInfo = {
   
   // Contact Information - UPDATE WITH YOUR ACTUAL LINKS
   email: "rajvardhanhd6403@gmail.com", // Your actual email
-  github: "https://github.com/rajvardhanhd6403", // Your GitHub profile
+  github: "https://github.com/raj-deshmukh6403", // Your GitHub profile
   linkedin: "https://www.linkedin.com/in/rajvardhan-deshmukh-323787229/", // Your LinkedIn profile
   portfolio: "https://rajvardhanhd6403.github.io", // Your portfolio website
 
