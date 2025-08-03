@@ -1,4 +1,4 @@
-// src/App.jsx
+// src/App.jsx - FIXED to prevent homepage flash
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './context/AuthContext';
@@ -19,51 +19,168 @@ import VerifyOTP from './components/auth/VerifyOTP';
 import Loading from './components/common/Loading';
 import './styles/globals.css';
 
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <Loading />;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// Public Route Component (redirects to dashboard if authenticated)
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <Loading />;
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
+
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
 
- // Show loading spinner while checking auth status
- if (isLoading) {
-    // Or your loading component
-    <Loading/>
- }
+  // Show loading spinner while checking auth status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <main className="flex-grow flex items-center justify-center">
+          <Loading />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <main className="flex-grow">
         <Routes>
-          {/* Routes for non-authenticated users */}
-          {!isAuthenticated ? (
-            <>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/verify-otp" element={<VerifyOTP />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              {/* Redirect any other route to home for non-authenticated users */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </>
-          ) : (
-            <>
-              {/* Routes for authenticated users */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/print" element={<PrintForm />} />
-              <Route path="/payment/:id" element={<PaymentPage />} />
-              <Route path="/history" element={<PrintHistory />} />
-              <Route path="/profile" element={<Profile />} />
-              {/* Redirect root and other public routes to dashboard for authenticated users */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/about" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/contact" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/login" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/register" element={<Navigate to="/dashboard" replace />} />
-              {/* Redirect any other route to dashboard for authenticated users */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </>
-          )}
+          {/* Public routes - redirect to dashboard if authenticated */}
+          <Route 
+            path="/" 
+            element={
+              <PublicRoute>
+                <HomePage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/about" 
+            element={
+              <PublicRoute>
+                <About />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/contact" 
+            element={
+              <PublicRoute>
+                <Contact />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/verify-otp" 
+            element={
+              <PublicRoute>
+                <VerifyOTP />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/forgot-password" 
+            element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            } 
+          />
+
+          {/* Protected routes - require authentication */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/print" 
+            element={
+              <ProtectedRoute>
+                <PrintForm />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/payment/:id" 
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/history" 
+            element={
+              <ProtectedRoute>
+                <PrintHistory />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Catch all route - redirect based on auth status */}
+          <Route 
+            path="*" 
+            element={
+              isAuthenticated ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            } 
+          />
         </Routes>
       </main>
       <Footer />
