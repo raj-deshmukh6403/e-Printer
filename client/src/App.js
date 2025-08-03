@@ -16,7 +16,6 @@ import Profile from './components/dashboard/Profile';
 import About from './components/home/About';
 import Contact from './components/home/Contact';
 import VerifyOTP from './components/auth/VerifyOTP';
-import {FullPageLoading} from './components/common/Loading';
 import './styles/globals.css';
 
 // Protected Route Component
@@ -54,12 +53,9 @@ function App() {
 
   // Show loading spinner while checking auth status
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <main className="flex-grow flex items-center justify-center">
-          <FullPageLoading />
-        </main>
-        <Footer />
+   return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
