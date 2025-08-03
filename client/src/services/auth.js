@@ -72,27 +72,32 @@ export const authService = {
     }
   },
 
-  // Logout user
+  // Logout user - FIXED
   logout: async () => {
     try {
       console.log('AuthService: Logging out...');
-      // Try to call server logout endpoint
+      
+      // Clear localStorage FIRST to prevent race conditions
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      console.log('AuthService: Local storage cleared');
+      
+      // Try to call server logout endpoint (optional)
       try {
         const response = await api.post('/auth/logout');
+        console.log('AuthService: Server logout successful');
         return response.data;
       } catch (error) {
-        // Ignore server logout errors
+        // Ignore server logout errors since local storage is already cleared
         console.warn('AuthService: Server logout failed (ignored):', error.message);
+        return { success: true, message: 'Logged out locally' };
       }
       
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      console.log('AuthService: Logout completed');
     } catch (error) {
       console.error('AuthService: Logout error:', error);
+      // Always clear localStorage even if there's an error
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeUser('user');
       throw error;
     }
   },

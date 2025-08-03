@@ -24,6 +24,8 @@ router.post('/register', validateRegistration, authController.register);
 // Login user
 router.post('/login', validateLogin, authController.login);
 
+router.get('/profile', auth, authController.getProfile);
+
 // Logout user
 router.post('/logout', auth, authController.logout);
 
@@ -55,7 +57,6 @@ router.put('/reset-password/:resettoken', authController.resetPassword);
 // PROFILE & SETTINGS ROUTES
 // ===========================================
 // Get current user profile with stats
-router.get('/profile', auth, authController.getProfile);
 
 // Update user profile
 router.put('/profile', auth, authController.updateProfile);

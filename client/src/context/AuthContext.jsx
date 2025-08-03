@@ -1,13 +1,13 @@
-// client/src/context/AuthContext.jsx - FIXED with separate password reset functions
+// client/src/context/AuthContext.jsx - FIXED initialization and logout issues
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
 import { authService } from '../services/auth';
 
-// Initial state
+// Initial state - Start with loading true to prevent flash
 const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: true, // Keep true initially
   error: null,
 };
 
@@ -35,11 +35,18 @@ const authReducer = (state, action) => {
   switch (action.type) {
     case AUTH_ACTION_TYPES.LOGIN_START:
     case AUTH_ACTION_TYPES.REGISTER_START:
-    case AUTH_ACTION_TYPES.LOAD_USER_START:
     case AUTH_ACTION_TYPES.UPDATE_PROFILE_START:
       return {
         ...state,
         isLoading: true,
+        error: null,
+      };
+
+    case AUTH_ACTION_TYPES.LOAD_USER_START:
+      return {
+        ...state,
+        // Don't set loading true here if we already have a user
+        isLoading: state.user ? false : true,
         error: null,
       };
 
@@ -80,7 +87,6 @@ const authReducer = (state, action) => {
 
     case AUTH_ACTION_TYPES.LOGIN_FAILURE:
     case AUTH_ACTION_TYPES.REGISTER_FAILURE:
-    case AUTH_ACTION_TYPES.LOAD_USER_FAILURE:
     case AUTH_ACTION_TYPES.UPDATE_PROFILE_FAILURE:
       return {
         ...state,
@@ -91,10 +97,20 @@ const authReducer = (state, action) => {
         error: action.payload.error,
       };
 
+    case AUTH_ACTION_TYPES.LOAD_USER_FAILURE:
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false, // Set loading to false immediately
+        error: action.payload.error,
+      };
+
     case AUTH_ACTION_TYPES.LOGOUT:
       return {
         ...initialState,
-        isLoading: false,
+        isLoading: false, // Set loading false immediately on logout
       };
 
     case AUTH_ACTION_TYPES.CLEAR_ERROR:
@@ -124,10 +140,12 @@ export const AuthProvider = ({ children }) => {
   const hasInitialized = useRef(false);
   const isLoadingUser = useRef(false);
   const loadUserTimeoutRef = useRef(null);
+  const isLoggedOut = useRef(false); // Track logout state
 
   const loadUser = useCallback(async () => {
-    if (isLoadingUser.current) {
-      console.log('loadUser already in progress, skipping');
+    // Don't load user if we just logged out
+    if (isLoggedOut.current || isLoadingUser.current) {
+      console.log('loadUser skipped - logged out or already loading');
       return;
     }
 
@@ -150,6 +168,9 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.getProfile();
       
       if (response.success && response.user) {
+        // Reset logout flag if user loaded successfully
+        isLoggedOut.current = false;
+        
         dispatch({
           type: AUTH_ACTION_TYPES.LOAD_USER_SUCCESS,
           payload: { 
@@ -172,7 +193,7 @@ export const AuthProvider = ({ children }) => {
         }
         
         loadUserTimeoutRef.current = setTimeout(() => {
-          if (localStorage.getItem('token')) {
+          if (localStorage.getItem('token') && !isLoggedOut.current) {
             console.log('Retrying user load after rate limit...');
             loadUser();
           }
@@ -202,23 +223,26 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Initialize auth state on mount
   useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
       console.log('AuthProvider initializing...');
       
       const token = localStorage.getItem('token');
-      if (token) {
+      if (token && !isLoggedOut.current) {
         loadUser();
       } else {
+        // No token found - set loading to false immediately
         dispatch({
           type: AUTH_ACTION_TYPES.LOAD_USER_FAILURE,
           payload: { error: 'No token found' },
         });
       }
     }
-  }, []);
+  }, [loadUser]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (loadUserTimeoutRef.current) {
@@ -237,6 +261,7 @@ export const AuthProvider = ({ children }) => {
       
       if (response.success && response.user && response.token) {
         console.log('Login successful');
+        isLoggedOut.current = false;
         dispatch({
           type: AUTH_ACTION_TYPES.LOGIN_SUCCESS,
           payload: {
@@ -294,27 +319,41 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       console.log('Logging out...');
       
+      // Set logout flag immediately to prevent loadUser calls
+      isLoggedOut.current = true;
       hasInitialized.current = false;
       isLoadingUser.current = false;
       
+      // Clear any pending timeouts
       if (loadUserTimeoutRef.current) {
         clearTimeout(loadUserTimeoutRef.current);
         loadUserTimeoutRef.current = null;
       }
       
+      // Clear localStorage immediately
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Dispatch logout action
       dispatch({ type: AUTH_ACTION_TYPES.LOGOUT });
       
+      // Call server logout (but don't wait for it)
       authService.logout().catch(error => {
         console.error('Server logout error (ignored):', error);
       });
       
+      console.log('Logout completed');
+      
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if logout fails, clear local state
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      dispatch({ type: AUTH_ACTION_TYPES.LOGOUT });
     }
   };
 
@@ -543,6 +582,7 @@ export const AuthProvider = ({ children }) => {
     
     return 'U';
   };
+
 
   const contextValue = React.useMemo(() => ({
     // State

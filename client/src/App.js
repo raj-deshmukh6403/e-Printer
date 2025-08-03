@@ -31,8 +31,13 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
+ // Show loading spinner while checking auth status
+ if (isLoading) {
+   return <div>Loading...</div>; // Or your loading component
+ }
+ 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />

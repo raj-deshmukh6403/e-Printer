@@ -29,10 +29,12 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    setDropdownOpen(false);
-    navigate('/');
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      await logout();
+      setDropdownOpen(false);
+      navigate('/');
+    }
   };
 
   const closeMenus = () => {
