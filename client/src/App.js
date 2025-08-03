@@ -16,7 +16,7 @@ import Profile from './components/dashboard/Profile';
 import About from './components/home/About';
 import Contact from './components/home/Contact';
 import VerifyOTP from './components/auth/VerifyOTP';
-import Loading from './components/common/Loading';
+import {FullPageLoading} from './components/common/Loading';
 import './styles/globals.css';
 
 // Protected Route Component
@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return <Loading />;
+    return <FullPageLoading />;
   }
   
   if (!isAuthenticated) {
@@ -39,7 +39,7 @@ const PublicRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return <Loading />;
+    return <FullPageLoading />;
   }
   
   if (isAuthenticated) {
@@ -56,9 +56,8 @@ function App() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Navbar />
         <main className="flex-grow flex items-center justify-center">
-          <Loading />
+          <FullPageLoading />
         </main>
         <Footer />
       </div>
