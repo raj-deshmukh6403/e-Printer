@@ -6,7 +6,52 @@ let settingsCache = null;
 let settingsCacheTime = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export const printService = {
+export const printService = {  
+
+    // Submit contact form
+    submitContactForm: async (formData) => {
+      try {
+        const response = await api.post('/contact', {
+          name: formData.name,
+          email: formData.email,
+          category: formData.category,
+          subject: formData.subject,
+          message: formData.message,
+          timestamp: new Date().toISOString(),
+        });
+
+        return {
+          success: true,
+          data: response.data,
+          message: 'Contact form submitted successfully'
+        };
+      } catch (error) {
+        console.error('Contact form submission error:', error);
+        return {
+          success: false,
+          error: error.response?.data?.message || error.message,
+          message: 'Failed to submit contact form'
+        };
+      }
+    },
+
+    // Get contact form history (if needed)
+    getContactHistory: async () => {
+      try {
+        const response = await api.get('/contact/history');
+
+        return {
+          success: true,
+          data: response.data
+        };
+      } catch (error) {
+        console.error('Failed to fetch contact history:', error);
+        return {
+          success: false,
+          error: error.response?.data?.message || error.message
+        };
+      }
+    },
 
   // Get settings with caching
   getSettings: async (forceRefresh = false) => {
@@ -393,6 +438,8 @@ export const printService = {
       throw error;
     }
   },
+
+  
 
   // Get detailed print request information
   getPrintRequest: async (requestId) => {

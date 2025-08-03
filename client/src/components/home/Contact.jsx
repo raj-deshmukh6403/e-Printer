@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Clock, MessageSquare, Send, CheckCircle, AlertTriangle, User, HelpCircle } from 'lucide-react';
+import { printService } from '../../services/print'; // Import your print service
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,20 @@ const Contact = () => {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [isVisible, setIsVisible] = useState({});
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // Dynamic data states
+  const [contactSettings, setContactSettings] = useState({
+    supportEmail: 'support@eprinter.edu',
+    supportPhone: '+91 XXX-XXX-XXXX',
+    emergencyEmail: 'emergency@eprinter.edu',
+    emergencyPhone: '+91 XXX-XXX-XXXX',
+    location: 'Campus Library, Ground Floor',
+    businessHours: {
+      start: '08:00',
+      end: '20:00'
+    }
+  });
+  const [loading, setLoading] = useState(true);
 
   // Auto-slide for background animation
   useEffect(() => {
@@ -20,6 +35,46 @@ const Contact = () => {
       setCurrentSlide((prev) => (prev + 1) % 3);
     }, 4000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch dynamic contact settings
+  useEffect(() => {
+    const fetchContactSettings = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch settings from your backend
+        const [settingsResponse, statusResponse] = await Promise.all([
+          printService.getSettings(),
+          printService.getServiceStatus()
+        ]);
+
+        // Update contact settings
+        if (settingsResponse.success && settingsResponse.data) {
+          const settings = settingsResponse.data;
+          setContactSettings(prev => ({
+            ...prev,
+            supportEmail: settings.supportEmail || prev.supportEmail,
+            supportPhone: settings.supportPhone || prev.supportPhone,
+            emergencyEmail: settings.emergencyEmail || prev.emergencyEmail,
+            emergencyPhone: settings.emergencyPhone || prev.emergencyPhone,
+            location: settings.location || prev.location,
+            businessHours: {
+              start: settings.businessHours?.start || prev.businessHours.start,
+              end: settings.businessHours?.end || prev.businessHours.end
+            }
+          }));
+        }
+
+      } catch (error) {
+        console.error('Failed to fetch contact settings:', error);
+        // Keep default values on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContactSettings();
   }, []);
 
   // Intersection Observer for animations
@@ -41,6 +96,19 @@ const Contact = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Format business hours for display
+  const formatBusinessHours = () => {
+    const formatTime = (time) => {
+      const [hours, minutes] = time.split(':');
+      const hour = parseInt(hours);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      return `${displayHour}:${minutes} ${ampm}`;
+    };
+
+    return `Mon-Fri: ${formatTime(contactSettings.businessHours.start)} - ${formatTime(contactSettings.businessHours.end)}`;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -52,20 +120,37 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        category: '',
-        subject: '',
-        message: ''
-      });
+      // Call your backend API to submit the contact form
+      const response = await printService.submitContactForm(formData);
+      
+      if (response.success) {
+        setSubmitStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          category: '',
+          subject: '',
+          message: ''
+        });
+        
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setSubmitStatus(null);
+        }, 5000);
+      } else {
+        throw new Error(response.message || 'Failed to send message');
+      }
     } catch (error) {
+      console.error('Contact form submission error:', error);
       setSubmitStatus('error');
+      
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => {
+        setSubmitStatus(null);
+      }, 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,23 +160,25 @@ const Contact = () => {
     {
       icon: <Mail className="w-8 h-8" />,
       title: "Email Support",
-      detail: "support@eprinter.edu",
+      detail: loading ? "Loading..." : contactSettings.supportEmail,
       description: "Get help via email",
       color: "blue",
-      delay: "0ms"
+      delay: "0ms",
+      href: `mailto:${contactSettings.supportEmail}`
     },
     {
       icon: <Phone className="w-8 h-8" />,
       title: "Phone Support",
-      detail: "+91 XXX-XXX-XXXX",
+      detail: loading ? "Loading..." : contactSettings.supportPhone,
       description: "Call us directly",
       color: "green",
-      delay: "200ms"
+      delay: "200ms",
+      href: `tel:${contactSettings.supportPhone}`
     },
     {
       icon: <MapPin className="w-8 h-8" />,
       title: "Visit Us",
-      detail: "Campus Library, Ground Floor",
+      detail: loading ? "Loading..." : contactSettings.location,
       description: "Come to our location",
       color: "purple",
       delay: "400ms"
@@ -99,7 +186,7 @@ const Contact = () => {
     {
       icon: <Clock className="w-8 h-8" />,
       title: "Support Hours",
-      detail: "Mon-Fri: 8AM-8PM",
+      detail: loading ? "Loading..." : formatBusinessHours(),
       description: "We're here to help",
       color: "orange",
       delay: "600ms"
@@ -190,19 +277,25 @@ const Contact = () => {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Choose your preferred way to reach us and we'll respond as quickly as possible
             </p>
+            {loading && (
+              <p className="text-sm text-gray-500 mt-2">Loading contact information...</p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {contactMethods.map((method, index) => (
               <div
                 key={index}
-                className={`group text-center p-8 rounded-2xl bg-gradient-to-br transition-all duration-500 transform hover:scale-105 hover:shadow-2xl cursor-pointer ${
+                className={`group text-center p-8 rounded-2xl bg-gradient-to-br transition-all duration-500 transform hover:scale-105 hover:shadow-2xl ${
+                  method.href ? 'cursor-pointer' : 'cursor-default'
+                } ${
                   method.color === 'blue' ? 'from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200' :
                   method.color === 'green' ? 'from-green-50 to-green-100 hover:from-green-100 hover:to-green-200' :
                   method.color === 'purple' ? 'from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200' :
                   'from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200'
                 }`}
                 style={{ animationDelay: method.delay }}
+                onClick={() => method.href && window.open(method.href, '_self')}
               >
                 <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-white group-hover:scale-110 transition-transform duration-300 shadow-lg ${
                   method.color === 'blue' ? 'bg-blue-600' :
@@ -257,7 +350,7 @@ const Contact = () => {
                   </div>
                 )}
 
-                <div className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="group">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -271,7 +364,8 @@ const Contact = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                          disabled={isSubmitting}
+                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           placeholder="Enter your full name"
                         />
                       </div>
@@ -289,7 +383,8 @@ const Contact = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                          disabled={isSubmitting}
+                          className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           placeholder="Enter your email"
                         />
                       </div>
@@ -306,7 +401,8 @@ const Contact = () => {
                         value={formData.category}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="">Select your category</option>
                         <option value="student">Student</option>
@@ -324,7 +420,8 @@ const Contact = () => {
                         value={formData.subject}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300"
+                        disabled={isSubmitting}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="">Select subject</option>
                         <option value="technical-support">Technical Support</option>
@@ -346,14 +443,15 @@ const Contact = () => {
                       value={formData.message}
                       onChange={handleChange}
                       required
+                      disabled={isSubmitting}
                       rows={6}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 resize-none group-hover:border-blue-300"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 resize-none group-hover:border-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Describe your issue or question in detail..."
                     />
                   </div>
 
                   <button
-                    onClick={handleSubmit}
+                    type="submit"
                     disabled={isSubmitting}
                     className="group w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
@@ -370,7 +468,7 @@ const Contact = () => {
                       </div>
                     )}
                   </button>
-                </div>
+                </form>
               </div>
             </div>
 
@@ -414,18 +512,18 @@ const Contact = () => {
                 </p>
                 <div className="space-y-3">
                   <a
-                    href="tel:+91XXXXXXXXX"
+                    href={`tel:${contactSettings.emergencyPhone}`}
                     className="group block w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-300 text-center transform hover:scale-105 shadow-md hover:shadow-lg"
                   >
                     <Phone className="w-4 h-4 inline mr-2" />
-                    Emergency: +91 XXX-XXX-XXXX
+                    Emergency: {loading ? "Loading..." : contactSettings.emergencyPhone}
                   </a>
                   <a
-                    href="mailto:emergency@eprinter.edu"
+                    href={`mailto:${contactSettings.emergencyEmail}`}
                     className="group block w-full border-2 border-red-600 text-red-600 px-4 py-3 rounded-lg font-semibold hover:bg-red-600 hover:text-white transition-all duration-300 text-center transform hover:scale-105"
                   >
                     <Mail className="w-4 h-4 inline mr-2" />
-                    emergency@eprinter.edu
+                    {loading ? "Loading..." : contactSettings.emergencyEmail}
                   </a>
                 </div>
               </div>

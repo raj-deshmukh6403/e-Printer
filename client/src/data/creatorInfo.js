@@ -19,7 +19,7 @@ export const creatorInfo = {
   portfolio: "https://rajvardhanhd6403.github.io", // Your portfolio website
 
   // Profile Image - You can use a placeholder or upload your actual photo
-  avatar: "raj.jpg", // Replace with path to your photo
+  avatar: "/raj.jpg", // Replace with path to your photo
   
   // Technical Skills - Add or remove skills as needed
   skills: [

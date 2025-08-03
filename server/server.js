@@ -19,6 +19,7 @@ const paymentRoutes = require('./routes/payment');
 const notificationRoutes = require('./routes/notification');
 const pdffiles = require('./routes/files');
 const settingsRoutes = require('./routes/settings');
+const contactRoutes = require('./routes/contact');
 
 // Import queue
 const printQueue = require('./utils/queue');
@@ -274,6 +275,11 @@ app.use('/api/settings', (req, res, next) => {
   next();
 }, settingsRoutes);
 
+app.use('/api/contact', (req, res, next) => {
+  console.log(`Contact route: ${req.method} ${req.path}`);
+  next();
+}, contactRoutes);
+
 app.get('/raj', (req, res) => {
   res.json({
     message: 'Hello from /raj route!'
@@ -293,7 +299,8 @@ app.get('/api', (req, res) => {
       payment: '/api/payment',
       notifications: '/api/notifications',
       files: '/api/files',
-      settings: '/api/settings'
+      settings: '/api/settings',
+      contact: '/api/contact'  // Add this line
     },
     fileEndpoints: {
       preview: '/api/files/preview/:filename',
@@ -325,7 +332,8 @@ app.use('*', (req, res) => {
       '/api/payment',
       '/api/notifications',
       '/api/files',
-      '/api/settings'
+      '/api/settings',
+      '/api/contact'
     ],
     fileRoutes: [
       '/api/files/preview/:filename',

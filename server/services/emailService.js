@@ -14,14 +14,35 @@ const transporter = nodemailer.createTransport({
 });
 
 // @desc    Send email
+// exports.sendEmail = async (options) => {
+//   try {
+//     const message = {
+//       from: `E-Printer <${process.env.EMAIL_USER}>`,
+//       to: options.email,
+//       subject: options.subject,
+//       text: options.message,
+//       html: options.html
+//     };
+
+//     const info = await transporter.sendMail(message);
+//     console.log('Email sent: ', info.messageId);
+//     return info;
+//   } catch (error) {
+//     console.error('Error sending email:', error);
+//     throw error;
+//   }
+// };
+
+// @desc    Send email
 exports.sendEmail = async (options) => {
   try {
     const message = {
-      from: `E-Printer <${process.env.EMAIL_USER}>`,
+      from: options.from ? `${options.from}` : `E-Printer <${process.env.EMAIL_USER}>`,
       to: options.email,
       subject: options.subject,
       text: options.message,
-      html: options.html
+      html: options.html,
+      replyTo: options.replyTo || options.from || process.env.EMAIL_USER
     };
 
     const info = await transporter.sendMail(message);
