@@ -122,7 +122,7 @@ const WebTeam = () => {
                   <img
                     src={creatorInfo.avatar}
                     alt={creatorInfo.name}
-                    className="w-48 h-36 md:w-64 md:h-48 rounded-3xl mx-auto border-4 border-white/30 shadow-2xl object-cover backdrop-blur-sm transform transition-all duration-500 hover:scale-105 hover:shadow-3xl"
+                    className="w-56 h-72 md:w-72 md:h-96 rounded-3xl mx-auto border-4 border-white/30 shadow-2xl object-cover backdrop-blur-sm transform transition-all duration-500 hover:scale-105 hover:shadow-3xl"
                   />
                   <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
