@@ -17,10 +17,10 @@ const Contact = () => {
   
   // Dynamic data states
   const [contactSettings, setContactSettings] = useState({
-    supportEmail: 'support@eprinter.edu',
-    supportPhone: '+91 XXX-XXX-XXXX',
-    emergencyEmail: 'emergency@eprinter.edu',
-    emergencyPhone: '+91 XXX-XXX-XXXX',
+    supportEmail: 'contact@eprinter.edu',
+    supportPhone: '+91 9876543210',
+    emergencyEmail: 'support@eprinter.edu',
+    emergencyPhone: '+91 8767729499',
     location: 'Campus Library, Ground Floor',
     businessHours: {
       start: '08:00',

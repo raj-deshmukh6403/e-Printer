@@ -116,11 +116,17 @@ const WebTeam = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="mb-8">
-              <img
-                src={creatorInfo.avatar}
-                alt={creatorInfo.name}
-                className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white/20 shadow-2xl object-cover"
-              />
+              <div className="relative mx-auto mb-6 group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-white/30 via-blue-200/50 to-purple-200/50 rounded-3xl blur-lg opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                <div className="relative">
+                  <img
+                    src={creatorInfo.avatar}
+                    alt={creatorInfo.name}
+                    className="w-48 h-36 md:w-64 md:h-48 rounded-3xl mx-auto border-4 border-white/30 shadow-2xl object-cover backdrop-blur-sm transform transition-all duration-500 hover:scale-105 hover:shadow-3xl"
+                  />
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
+              </div>
               <h1 className="text-5xl md:text-6xl font-bold mb-4">
                 Meet the Creator
               </h1>
