@@ -166,7 +166,7 @@ const settingsSchema = new mongoose.Schema({
     address: {
       type: String,
       required: true,
-      default: '123 Print Street, City, State 12345'
+      default: 'Campus Library, PICT College, Pune'
     },
     phone: {
       type: String,

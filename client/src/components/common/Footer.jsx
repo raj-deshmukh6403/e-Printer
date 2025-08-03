@@ -35,7 +35,7 @@ const Footer = () => {
           printService.getSettings(),
           printService.getPricingInfo()
         ]);
-        
+
         // Update pricing
         if (pricingResponse.success && pricingResponse.data) {
           setPricing({
@@ -98,7 +98,7 @@ const Footer = () => {
     if (loading) return 'Loading...';
     // You can modify this based on your business logic
     // For now, assuming same hours or you can fetch separate weekend hours
-    return `Sat-Sun: ${formatBusinessHours()}`;
+    return `Sat-Sun: 8:00 AM - 2:00 PM`;
   };
 
   return (

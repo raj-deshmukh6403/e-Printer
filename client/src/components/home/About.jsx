@@ -35,7 +35,7 @@ const About = () => {
   const features = [
     {
       icon: <Clock className="w-8 h-8" />,
-      title: "24/7 Availability",
+      title: "Availability",
       description: "Submit your print requests anytime, anywhere on campus. Our system works round the clock.",
       color: "blue",
       delay: "0ms"

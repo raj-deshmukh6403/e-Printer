@@ -123,7 +123,7 @@ const Home = () => {
     {
       icon: <Shield className="w-8 h-8" />,
       title: "Bank-Level Security",
-      description: "Your documents are encrypted with military-grade security. Privacy and confidentiality guaranteed.",
+      description: "Your documents are encrypted with high level security. Privacy and confidentiality guaranteed.",
       color: "green",
       delay: "200ms"
     },
@@ -187,7 +187,7 @@ const Home = () => {
   const stats = [
     { icon: <Users className="w-8 h-8" />, number: "50,000+", label: "Happy Students" },
     { icon: <Printer className="w-8 h-8" />, number: "1M+", label: "Documents Printed" },
-    { icon: <Clock className="w-8 h-8" />, number: serviceStatus.available ? "24/7" : formatBusinessHours(), label: "Service Available" },
+    { icon: <Clock className="w-8 h-8" />, number: serviceStatus.available ? formatBusinessHours() :"8:00 AM - 18:00 PM", label: "Service Available" },
     { icon: <CheckCircle className="w-8 h-8" />, number: "99.9%", label: "Uptime" }
   ];
 
