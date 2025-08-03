@@ -16,28 +16,18 @@ import Profile from './components/dashboard/Profile';
 import About from './components/home/About';
 import Contact from './components/home/Contact';
 import VerifyOTP from './components/auth/VerifyOTP';
+import Loading from './components/common/Loading';
 import './styles/globals.css';
-
-// Component to redirect authenticated users away from public routes
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
-};
-
-// Component to protect routes that require authentication
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-};
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth();
 
  // Show loading spinner while checking auth status
  if (isLoading) {
-   return <div>Loading...</div>; // Or your loading component
+    // Or your loading component
+    <Loading/>
  }
- 
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
