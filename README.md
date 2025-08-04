@@ -290,7 +290,7 @@ Make sure you have the following installed:
 <details>
 <summary>Click to view screenshots</summary>
 
-![User Dashboard](https://github.com/raj-deshmukh6403/e-Printer/blob/main/client/public/user-dashboard.jpg)
+![User Dashboard](https://github.com/raj-deshmukh6403/e-Printer/blob/main/client/public/user-dashboard.png)
 *Clean and intuitive user dashboard with quick access to all features*
 
 ![User Profile](https://github.com/raj-deshmukh6403/e-Printer/blob/main/client/public/profile.png)
