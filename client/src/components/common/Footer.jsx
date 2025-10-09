@@ -312,8 +312,9 @@ const Footer = () => {
               © 2025 E-Printer. All rights reserved. Made with ❤️ for students.
             </p>
             <div className="flex flex-wrap justify-center space-x-6">
+              {/*disabled web team link for babar next time change that from /web-team to / */}
               <a 
-                href="/web-team" 
+                href="/" 
                 className="text-gray-400 hover:text-blue-400 text-sm transition-colors"
               >
                 Web Team
