@@ -305,7 +305,7 @@ const Footer = () => {
           </div>
         )}
 
-        {/* Bottom Bar */}
+        {/* Bottom Bar code */}
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
