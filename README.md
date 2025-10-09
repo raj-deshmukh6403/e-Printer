@@ -587,7 +587,7 @@ SOFTWARE.
 - 🎓 **Education**: Final Year IT Student at PICT, Pune
 - 💼 **Experience**: 2+ years in Web Development
 - 🌍 **Location**: Pune, Maharashtra, India
-- 💡 **Expertise**: Full Stack Development, UI/UX Design, System Architecture
+- 💡 **Expertise**: Full Stack Development,System Architecture
 
 ### 🛠️ Technical Skills
 
@@ -645,3 +645,4 @@ SOFTWARE.
   *© 2024 E-Printer. Revolutionizing campus printing, one document at a time.*
   
 </div>
+
