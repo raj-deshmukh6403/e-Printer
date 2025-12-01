@@ -17,6 +17,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
+
 // @desc    Create payment order
 // @route   POST /api/payment/create-order
 // @access  Private
@@ -549,4 +550,5 @@ function generatePaymentConfirmationEmail(printRequest) {
     </body>
     </html>
   `;
+
 }
