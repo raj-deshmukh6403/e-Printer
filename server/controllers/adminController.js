@@ -16,6 +16,7 @@ try {
   createNotification = null;
 }
 
+
 try {
   const emailService = require('../services/emailService');
   sendEmail = emailService.sendEmail;
@@ -892,4 +893,5 @@ function generateStatusUpdateEmail(printRequest, status) {
     </body>
     </html>
   `;
+
 }
