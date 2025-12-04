@@ -44,6 +44,7 @@ const getPublicSettings = async (req, res) => {
       }
     };
 
+    
     res.json({
       success: true,
       data: publicSettings
@@ -240,4 +241,5 @@ module.exports = {
   getSettingByKey,
   getServiceStatus,
   getPricingInfo
+
 };
