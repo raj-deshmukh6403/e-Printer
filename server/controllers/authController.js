@@ -74,6 +74,7 @@ exports.register = async (req, res) => {
     const otp = user.generateOTP('verification');
     await user.save({ validateBeforeSave: false });
 
+    
     // Send verification email
     try {
       const message = `
@@ -865,4 +866,5 @@ exports.updatePassword = async (req, res) => {
       error: error.message
     });
   }
+
 };
