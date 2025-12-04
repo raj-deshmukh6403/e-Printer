@@ -17,6 +17,7 @@ exports.getUserNotifications = async (req, res) => {
       query.read = false;
     }
 
+    
     const notifications = await Notification.find(query)
       .populate('printRequestId', 'documentName queueNumber status')
       .sort({ createdAt: -1 })
@@ -231,4 +232,5 @@ exports.getNotificationStats = async (req, res) => {
       error: error.message
     });
   }
+
 };
