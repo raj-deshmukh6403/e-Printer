@@ -28,6 +28,7 @@ import {
 
 const WebTeam = () => {
   const [isVisible, setIsVisible] = useState({});
+  
   const [currentTechIndex, setCurrentTechIndex] = useState(0);
 
   // Intersection Observer for animations
@@ -37,6 +38,7 @@ const WebTeam = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
+            
           }
         });
       },
@@ -520,3 +522,4 @@ const WebTeam = () => {
 
 
 export default WebTeam;
+
