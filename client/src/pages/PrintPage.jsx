@@ -13,6 +13,7 @@ const PrintPage = () => {
 
   const handlePrintFormSubmit = (data) => {
     setPrintData(data);
+    
     setCurrentStep(2);
   };
 
@@ -102,5 +103,6 @@ const PrintPage = () => {
     </ProtectedRoute>
   );
 };
+
 
 export default PrintPage;
