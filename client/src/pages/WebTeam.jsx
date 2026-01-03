@@ -62,6 +62,7 @@ const WebTeam = () => {
       icon: <Smartphone className="w-6 h-6" />,
       title: "Mobile-First Design",
       description: "Responsive interface that works perfectly on all devices"
+      
     },
     {
       icon: <Database className="w-6 h-6" />,
@@ -516,5 +517,6 @@ const WebTeam = () => {
     </div>
   );
 };
+
 
 export default WebTeam;
