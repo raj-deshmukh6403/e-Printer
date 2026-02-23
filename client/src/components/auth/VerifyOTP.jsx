@@ -1,9 +1,9 @@
 // src/components/auth/VerifyOTP.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
-import { Mail, Shield, ArrowLeft, RefreshCw, Printer } from 'lucide-react';
+import { Mail, Shield, ArrowLeft, RefreshCw} from 'lucide-react';
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -21,8 +21,8 @@ const VerifyOTP = () => {
 
   // Get email and verification type from navigation state
   const email = location.state?.email || '';
-  const fromRegistration = location.state?.fromRegistration || false;
-  const fromLogin = location.state?.fromLogin || false;
+  //const fromRegistration = location.state?.fromRegistration || false;
+  //const fromLogin = location.state?.fromLogin || false;
 
   // Auto-slide for background animation
   useEffect(() => {

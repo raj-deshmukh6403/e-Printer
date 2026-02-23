@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { Mail, ArrowLeft, Printer, CheckCircle, Lock, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

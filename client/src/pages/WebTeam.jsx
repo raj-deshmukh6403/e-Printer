@@ -1,5 +1,5 @@
 // src/pages/WebTeam.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import creatorInfo from '../data/creatorInfo'; // Import your configuration
 import { 
@@ -21,7 +21,6 @@ import {
   Zap,
   Globe,
   Coffee,
-  Calendar,
   Target,
   Lightbulb
 } from 'lucide-react';

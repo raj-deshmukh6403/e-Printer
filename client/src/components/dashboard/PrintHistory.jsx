@@ -1,7 +1,6 @@
 // src/components/dashboard/PrintHistory.jsx - FIXED VERSION
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import { 
   History,
@@ -10,9 +9,6 @@ import {
   CheckCircle,
   XCircle,
   Printer,
-  Search,
-  Filter,
-  Eye,
   Download,
   Copy,
   Calendar,
@@ -22,13 +18,13 @@ import {
 import api from "../../services/api"
 
 const PrintHistory = () => {
-  const { user } = useAuth();
+  //const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
+  const [searchTerm] = useState('');
+  const [statusFilter] = useState('all');
+  const [dateFilter] = useState('all');
+  const [sortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   
@@ -41,11 +37,7 @@ const PrintHistory = () => {
     cancelled: 0
   });
 
-  useEffect(() => {
-    fetchPrintHistory();
-  }, [currentPage, statusFilter, dateFilter, sortBy, searchTerm]);
-
-  const fetchPrintHistory = async () => {
+  const fetchPrintHistory = useCallback(async () => {
   setLoading(true);
 
   try {
@@ -95,7 +87,7 @@ const PrintHistory = () => {
           fetchedStats.inProcess++;
         } else if (status === 'in_queue' || status === 'pending') {
           fetchedStats.inQueue++;
-        } else if (status === 'failed ') {
+        } else if (status === 'cancelled' || status === 'failed') {
           fetchedStats.cancelled++;
         }
       });
@@ -137,7 +129,11 @@ const PrintHistory = () => {
   } finally {
     setLoading(false);
   }
-};
+ }, [currentPage, statusFilter, dateFilter, sortBy, searchTerm]);
+
+ useEffect(() => {
+    fetchPrintHistory();
+  }, [fetchPrintHistory]);
 
   const getStatusColor = (status) => {
     switch (status) {

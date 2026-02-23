@@ -10,14 +10,13 @@ import {
   FileText, 
   Plus,
   Bell,
-  User,
   History
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
-  const { user, token } = useAuth();
+  const { user} = useAuth();
   const [stats, setStats] = useState({
     totalRequests: 0,
     inQueue: 0,

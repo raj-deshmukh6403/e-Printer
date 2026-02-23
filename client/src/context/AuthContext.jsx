@@ -537,62 +537,60 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Utility functions
-  const hasRole = (role) => {
-    return state.user?.category === role;
-  };
+ const hasRole = useCallback((role) => {
+  return state.user?.category === role;
+}, [state.user]);
 
-  const hasPermission = (permission) => {
-    return state.user?.permissions?.includes(permission);
-  };
+  const hasPermission = useCallback((permission) => {
+  return state.user?.permissions?.includes(permission);
+}, [state.user]);
 
-  const isVerified = () => {
-    return state.user?.isEmailVerified === true;
-  };
+  const isVerified = useCallback(() => {
+  return state.user?.isEmailVerified === true;
+}, [state.user]);
 
-  const getUserCategory = () => {
-    return state.user?.category;
-  };
+  const getUserCategory = useCallback(() => {
+  return state.user?.category;
+}, [state.user]);
 
-  const getUserDepartment = () => {
-    return state.user?.department;
-  };
+  const getUserDepartment = useCallback(() => {
+  return state.user?.department;
+}, [state.user]);
 
-  const getUserFullName = () => {
-    if (!state.user) return '';
-    if (state.user.firstName && state.user.lastName) {
-      return `${state.user.firstName} ${state.user.lastName}`;
-    }
-    return state.user.username || state.user.email || '';
-  };
+  const getUserFullName = useCallback(() => {
+  if (!state.user) return '';
+  if (state.user.firstName && state.user.lastName) {
+    return `${state.user.firstName} ${state.user.lastName}`;
+  }
+  return state.user.username || state.user.email || '';
+}, [state.user]);
 
-  const getUserInitials = () => {
-    if (!state.user) return '';
-    
-    if (state.user.firstName && state.user.lastName) {
-      return `${state.user.firstName.charAt(0)}${state.user.lastName.charAt(0)}`.toUpperCase();
-    }
-    
-    if (state.user.username) {
-      return state.user.username.charAt(0).toUpperCase();
-    }
-    
-    if (state.user.email) {
-      return state.user.email.charAt(0).toUpperCase();
-    }
-    
-    return 'U';
-  };
+  const getUserInitials = useCallback(() => {
+  if (!state.user) return '';
+  
+  if (state.user.firstName && state.user.lastName) {
+    return `${state.user.firstName.charAt(0)}${state.user.lastName.charAt(0)}`.toUpperCase();
+  }
+  
+  if (state.user.username) {
+    return state.user.username.charAt(0).toUpperCase();
+  }
+  
+  if (state.user.email) {
+    return state.user.email.charAt(0).toUpperCase();
+  }
+  
+  return 'U';
+}, [state.user]);
 
 
-  const contextValue = React.useMemo(() => ({
-    // State
+  const contextValue = {
     user: state.user,
     token: state.token,
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
     error: state.error,
 
-    // Actions
     login,
     register,
     logout,
@@ -601,23 +599,19 @@ export const AuthProvider = ({ children }) => {
     changePassword,
     clearError,
 
-    // Registration email verification
     sendOTP,
     verifyOTP,
     resendOTP,
 
-    // Forgot password functions (separate)
     forgotPassword,
     verifyForgotPasswordOTP,
     resetPasswordWithOTP,
     resendForgotPasswordOTP,
 
-    // Legacy functions
     resetPassword,
     verifyEmail,
     resendVerificationEmail,
 
-    // Utility functions
     hasRole,
     hasPermission,
     isVerified,
@@ -625,14 +619,7 @@ export const AuthProvider = ({ children }) => {
     getUserDepartment,
     getUserFullName,
     getUserInitials,
-  }), [
-    state.user,
-    state.token,
-    state.isAuthenticated,
-    state.isLoading,
-    state.error,
-    loadUser
-  ]);
+  };
 
   return (
     <AuthContext.Provider value={contextValue}>

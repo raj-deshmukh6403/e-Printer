@@ -1,7 +1,7 @@
 // src/components/dashboard/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Phone, Building, Calendar, Edit3, Save, X, TrendingUp, FileText, DollarSign } from 'lucide-react';
+import { User, Mail, Phone, Building,Edit3, Save, X, TrendingUp, FileText, DollarSign } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Profile = () => {

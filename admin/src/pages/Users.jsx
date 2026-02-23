@@ -1,10 +1,9 @@
 // admin/src/pages/Users.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search,
   Filter,
-  Edit,
   Trash2,
   Eye,
   User as UserIcon,

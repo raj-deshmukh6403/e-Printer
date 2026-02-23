@@ -1,9 +1,8 @@
 // admin/src/components/dashboard/PrintPreview.jsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   X,
-  Download,
   FileText,
   User,
   Calendar,
@@ -15,7 +14,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { updatePrintStatus, getPrintRequest } from '../../services/adminApi';
+import { updatePrintStatus} from '../../services/adminApi';
 
 const PrintPreview = ({ request, onClose, onStatusUpdate }) => {
   const [adminNotes, setAdminNotes] = useState('');

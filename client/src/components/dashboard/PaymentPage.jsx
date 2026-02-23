@@ -1,5 +1,5 @@
 // src/components/dashboard/PaymentPage.jsx - RAZORPAY INTEGRATION - FIXED
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect,useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -13,9 +13,7 @@ import {
   X,
   FileText,
   Clock,
-  AlertCircle,
   Copy,
-  QrCode
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -66,11 +64,7 @@ const PaymentPage = () => {
     loadRazorpay();
   }, []);
 
-  useEffect(() => {
-    fetchPrintRequest();
-  }, [id]);
-
-  const fetchPrintRequest = async () => {
+  const fetchPrintRequest = useCallback(async () => {
     try {
       console.log('=== PAYMENT PAGE DEBUG ===');
       console.log('User:', user);
@@ -110,7 +104,11 @@ const PaymentPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, token, user, navigate]);
+
+   useEffect(() => {
+    fetchPrintRequest();
+  }, [fetchPrintRequest]);
 
   const handlePayment = async () => {
     if (!razorpayLoaded) {

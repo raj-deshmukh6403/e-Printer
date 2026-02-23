@@ -1,8 +1,8 @@
 // src/components/common/Navbar.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Printer, Menu, X, User, LogOut, FileText, BarChart3, Settings } from 'lucide-react';
+import { Printer, Menu, X, User, LogOut, FileText, BarChart3} from 'lucide-react';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();

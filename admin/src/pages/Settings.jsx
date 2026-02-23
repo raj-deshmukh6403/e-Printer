@@ -1,5 +1,5 @@
 // admin/src/pages/Settings.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Save,
@@ -7,8 +7,6 @@ import {
   Clock,
   Mail,
   Phone,
-  MapPin,
-  FileText,
   Settings as SettingsIcon,
   Printer,
   AlertCircle,
@@ -26,7 +24,7 @@ const Settings = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: settingsResponse, isLoading, error } = useQuery({
+  const { data:isLoading, error } = useQuery({
     queryKey: ['settings'],
     queryFn: getSettings,
     onSuccess: (data) => {

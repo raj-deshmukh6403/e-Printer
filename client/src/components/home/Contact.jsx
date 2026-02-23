@@ -44,7 +44,7 @@ const Contact = () => {
         setLoading(true);
         
         // Fetch settings from your backend
-        const [settingsResponse, statusResponse] = await Promise.all([
+        const [settingsResponse] = await Promise.all([
           printService.getSettings(),
           printService.getServiceStatus()
         ]);

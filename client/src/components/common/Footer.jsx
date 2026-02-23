@@ -314,7 +314,7 @@ const Footer = () => {
             <div className="flex flex-wrap justify-center space-x-6">
               {/*disabled web team link for babar next time change that from /web-team to / */}
               <a 
-                href="/" 
+                href="/web-team"  
                 className="text-gray-400 hover:text-blue-400 text-sm transition-colors"
               >
                 Web Team
